@@ -27,7 +27,6 @@ async def review_resume(file: UploadFile = File(...)):
     else:
         text = content.decode("utf-8", errors="ignore")
     
-    
     text = text[:3000]
 
     prompt = f"""
@@ -41,24 +40,36 @@ async def review_resume(file: UploadFile = File(...)):
     {text}
     """
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "https://openrouter.ai/api/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
-                "Content-Type": "application/json"
-            },
-            json={
-               "model": "google/gemma-4-31b-it:free",
-                "messages": [
-                    {"role": "user", "content": prompt}
-                ]
-            },
-            timeout=60
-        )
+    models = [
+        "google/gemma-4-31b-it:free",
+        "google/gemma-3-4b-it:free",
+        "mistralai/devstral-small:free",
+        "meta-llama/llama-3.2-3b-instruct:free",
+        "openai/gpt-oss-120b:free",
+    ]
 
-    result = response.json()
-    if "choices" not in result:
-        return {"feedback": f"API Error: {result}"}
-    reply = result["choices"][0]["message"]["content"]
+    reply = None
+    async with httpx.AsyncClient() as client:
+        for model in models:
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {os.getenv('OPENROUTER_API_KEY')}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model,
+                    "messages": [
+                        {"role": "user", "content": prompt}
+                    ]
+                },
+                timeout=60
+            )
+            result = response.json()
+            if "choices" in result:
+                reply = result["choices"][0]["message"]["content"]
+                break
+
+    if not reply:
+        return {"feedback": "Sab models busy hain, thodi der baad try karo!"}
     return {"feedback": reply}
