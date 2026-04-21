@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Reviewer</title>
+    <style>
+
+          .score-box {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.score-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.score-label {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.section {
+    margin-bottom: 15px;
+}
+
+.section-title {
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.section-content {
+    color: #444;
+    line-height: 1.7;
+    font-size: 0.9rem;
+}
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 1rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            background: #f8f7ff;
+        }
+
+        .upload-area:hover {
+            background: #eeecff;
+        }
+
+        .upload-area .icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .upload-area p { color: #667eea; font-weight: 600; }
+        .upload-area span { color: #aaa; font-size: 0.85rem; }
+
+        #resumeFile { display: none; }
+
+        #fileName {
+            color: #764ba2;
+            font-weight: 600;
+            margin-top: 8px;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .btn:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .loader {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .loader .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loader p { color: #667eea; font-weight: 600; }
+
+        #result {
+            display: none;
+            margin-top: 25px;
+            background: #f8f7ff;
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid #667eea;
+            white-space: pre-wrap;
+            color: #333;
+            line-height: 1.7;
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Resume Reviewer</h1>
+            <p>Get instant AI-powered feedback on your resume</p>
+        </div>
+
+        <div class="upload-area" onclick="document.getElementById('resumeFile').click()">
+            <div class="icon">📄</div>
+            <p>Click to upload your resume</p>
+            <span>Supports .txt and .pdf files</span>
+            <div id="fileName">No file chosen</div>
+        </div>
+        <input type="file" id="resumeFile" accept=".txt,.pdf"accept=".txt" onchange="showFileName()">
+
+        <button class="btn" onclick="uploadResume()">✨ Review My Resume</button>
+
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p>AI is analyzing your resume...</p>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function showFileName() {
+            const file = document.getElementById('resumeFile').files[0];
+            document.getElementById('fileName').innerText = file ? file.name : 'No file chosen';
+        }
+
+        async function uploadResume() {
+    const file = document.getElementById('resumeFile').files[0];
+    if (!file) { alert('Please select a file first!'); return; }
+
+    document.getElementById('loader').style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+    document.querySelector('.btn').disabled = true;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/review', { method: 'POST', body: formData });
+    const data = await response.json();
+
+    document.getElementById('loader').style.display = 'none';
+    document.querySelector('.btn').disabled = false;
+
+    // Score nikalo
+    const scoreMatch = data.feedback.match(/(\d+(\.\d+)?)\/10/);
+    const score = scoreMatch ? scoreMatch[1] : '?';
+
+    // Sections nikalo
+    const feedback = data.feedback;
+
+    document.getElementById('result').style.display = 'block';
+    
+    function formatText(text) {
+    return text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
+}
+    document.getElementById('result').innerHTML = `
+        <div class="score-box">
+            <div class="score-circle">${score}<span style="font-size:1rem">/10</span></div>
+            <div class="score-label">Overall Resume Score</div>
+        </div>
+        <div class="section">
+            <div class="section-title">📋 Full Feedback</div>
+            <div class="section-content">${formatText(feedback)}</div>
+        </div>
+    `;
+}        
+    </script>
+</body>
+</html>
