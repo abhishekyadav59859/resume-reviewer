@@ -214,7 +214,7 @@
     document.querySelector('.btn').disabled = false;
 
     // Score nikalo
-    const scoreMatch = data.feedback.match(/(\d+(\.\d+)?)\/10/);
+    const scoreMatch = data.feedback.match(/(\d+(\.\d+)?)\s*\/\s*10/);
     const score = scoreMatch ? scoreMatch[1] : '?';
 
     // Sections nikalo
@@ -224,6 +224,8 @@
     
     function formatText(text) {
     return text
+        .replace(/### (.*?)(\n|$)/g, '<h3 style="color:#667eea;margin:15px 0 8px;">$1</h3>')
+        .replace(/## (.*?)(\n|$)/g, '<h2 style="color:#667eea;margin:15px 0 8px;">$1</h2>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/\n/g, '<br>');
