@@ -49,7 +49,7 @@ async def review_resume(file: UploadFile = File(...)):
                 "Content-Type": "application/json"
             },
             json={
-                "model": "mistralai/devstral-small:free","model": "google/gemma-3-4b-it:free",
+                "model": "deepseek/deepseek-r1-0528:free",
                 "messages": [
                     {"role": "user", "content": prompt}
                 ]
